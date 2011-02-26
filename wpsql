@@ -1,6 +1,7 @@
 #!/bin/bash
-sqlname=`grep -oP "define\s*\(\s*['\"]DB_NAME['\"]\s*,\s*['\"]([^'\"]+)['\"]" $1 | cut -d, -f2 | sed "s/^ \+//" | sed "s/['\"]//g"`
-sqluser=`grep -oP "define\s*\(\s*['\"]DB_USER['\"]\s*,\s*['\"]([^'\"]+)['\"]" $1 | cut -d, -f2 | sed "s/^ \+//" | sed "s/['\"]//g"`
-sqlhost=`grep -oP "define\s*\(\s*['\"]DB_HOST['\"]\s*,\s*['\"]([^'\"]+)['\"]" $1 | cut -d, -f2 | sed "s/^ \+//" | sed "s/['\"]//g"`
-sqlpass=`grep -oP "define\s*\(\s*['\"]DB_PASSWORD['\"]\s*,\s*['\"]([^'\"]+)['\"]" $1 | cut -d, -f2 | sed "s/^ \+//" | sed "s/['\"]//g"`
+sqlname=`grep "define.*DB_NAME" $1 | awk -F"[,'\"]" '{print $5}'`
+sqluser=`grep "define.*DB_USER" $1 | awk -F"[,'\"]" '{print $5}'`
+sqlhost=`grep "define.*DB_HOST" $1 | awk -F"[,'\"]" '{print $5}'`
+sqlpass=`grep "define.*DB_PASSWORD" $1 | awk -F"[,'\"]" '{print $5}'`
+
 mysql -h $sqlhost -u $sqluser -p$sqlpass $sqlname
