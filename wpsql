@@ -8,22 +8,13 @@ if [ "$1" == "" ] || [ $# -gt 1 ]; then
   exit 1
 fi
 
-# On a Mac running MAMP we need to call mysql from the Applications directory,
-# but on linux we can just run 'mysql'
-current_os=$(uname)
-if [ $current_os == "Darwin" ]; then
-  mysql=/Applications/MAMP/Library/bin/mysql;
-else
-  mysql=$(which mysql)
-fi
-
 # setup our variables from the file given to us as an argument
 # but lets just make sure we have a valid wp-config.php file
 if [ -e $1 ]; then
-  sqlname=$(grep DB_NAME $1 | cut -d, -f2 | sed -e 's/^..//' -e 's/....$//')
-  sqluser=$(grep DB_USER $1 | cut -d, -f2 | sed -e 's/^..//' -e 's/....$//')
-  sqlhost=$(grep DB_HOST $1 | cut -d, -f2 | sed -e 's/^..//' -e 's/....$//')
-  sqlpass=$(grep DB_PASSWORD $1 | cut -d, -f2 | sed -e 's/^..//' -e 's/....$//')
+  SQLNAME=$(cat $1 | sed -e '/DB_NAME/!d' -e 's/[ \|\"\|'\''\|'\)'\|;]//g' -e 's/^.*,//' | tr -d "\r \n")
+  SQLUSER=$(cat $1 | sed -e '/DB_USER/!d' -e 's/[ \|\"\|'\''\|'\)'\|;]//g' -e 's/^.*,//' | tr -d "\r \n")
+  SQLHOST=$(cat $1 | sed -e '/DB_HOST/!d' -e 's/[ \|\"\|'\''\|'\)'\|;]//g' -e 's/^.*,//' | tr -d "\r \n")
+  SQLPASS=$(cat $1 | sed -e '/DB_PASS/!d' -e 's/[ \|\"\|'\''\|'\)'\|;]//g' -e 's/^.*,//' | tr -d "\r \n")
 else
   echo
   echo "I don't think you supplied a valid wp-config.php file, please call Mark Jaquith for support."
@@ -31,13 +22,34 @@ else
   exit 2
 fi
 
+# On a Mac running MAMP we need to call mysql from the Applications directory,
+# but on linux we can just run 'mysql'
+OS=$(uname)
+if [ $OS == "Darwin" ]; then
+  MYSQL=/Applications/MAMP/Library/bin/mysql
+else # we're obviously on some flavor of Linux or BSD so...
+  MYSQL=$(which mysql)
+fi
+
+# Tell the user the details of this connection
+echo
+echo "Current OS: $OS"
+echo "Config file: $1"
+echo "DB Name: $SQLNAME"
+echo "SQL User: $SQLUSER"
+echo "SQL Server: $SQLHOST"
+echo
+echo "mySQL Client: $MYSQL"
+echo
+echo "The command you're running is: $MYSQL --host=$SQLHOST --user=$SQLUSER --password=********* $SQLNAME"
+echo
+
 # Only start mysql if we successfully extracted our variables above
-if [ $sqlname != "" ]; then
-  $mysql -h $sqlhost -u $sqluser -p$sqlpass $sqlname
+if [ "$SQLNAME" != "" ]; then
+  $MYSQL -h $SQLHOST --user=$SQLUSER --password=$SQLPASS $SQLNAME
 else
   echo
   echo "I don't think you supplied a valid wp-config.php file, please call Mark Jaquith for support."
   echo
   exit 3
 fi
-
