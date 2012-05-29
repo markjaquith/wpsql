@@ -1,7 +1,2 @@
 #!/bin/bash
-sqlname=`sed -n "s/.*\(['\"]\)DB_NAME\1\s*,\s*\(['\"]\)\(.*\)\2.*/\3/p" $1`
-sqluser=`sed -n "s/.*\(['\"]\)DB_USER\1\s*,\s*\(['\"]\)\(.*\)\2.*/\3/p" $1`
-sqlhost=`sed -n "s/.*\(['\"]\)DB_HOST\1\s*,\s*\(['\"]\)\(.*\)\2.*/\3/p" $1`
-sqlpass=`sed -n "s/.*\(['\"]\)DB_PASSWORD\1\s*,\s*\(['\"]\)\(.*\)\2.*/\3/p" $1`
-
-mysql -h $sqlhost -u $sqluser -p$sqlpass $sqlname
+eval $(sed -n "s/^d[^D]*DB_\([NUPH]\)[ASO].*',[^']*'\([^']*\)'.*/_\1='\2'/p" wp-config.php) && mysql -u $_U -p$_P -h $_H $_n
